@@ -145,7 +145,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     modal.addEventListener('click', (e) =>{
-        if (e.target === modal) {
+        if (e.target != modal) {
             closeModal ();
         }
 
