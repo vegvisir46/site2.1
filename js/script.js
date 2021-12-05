@@ -178,7 +178,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const containerBox = document.querySelector('.menu__field'),
           containers = containerBox.querySelector('.container');
-
+    // console.log(containerBox);
+    // console.log(containers);
     class MenuCard {
         constructor(src, alt, title, descr, price, ...classes) {
             this.src = src;
@@ -248,10 +249,21 @@ window.addEventListener('DOMContentLoaded', () => {
     };
 
     forms.forEach(item => {
-        postData(item);
+        bindPostData(item);
     });
 
-    function postData(form) {
+    const postData = async (url, data) => {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-type': 'application/json'
+            },
+            body: data
+        });
+        return await res.json();
+    };
+
+    function bindPostData(form) {
         // console.log('postData');
         form.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -262,23 +274,21 @@ window.addEventListener('DOMContentLoaded', () => {
                 display: block;
                 margin: 0 auto;
             `;
-            // form.append(statusMessage);
             form.insertAdjacentElement('afterend', statusMessage);
 
             const formData = new FormData(form);
 
-            const object = {};
-            formData.forEach(function (value,key){
-                object[key] = value;
-            });
+            // const object = {};
+            // formData.forEach(function (value,key){
+            //     object[key] = value;
+            // });
+            const json = JSON.stringify();
 
-            fetch('server.php', {
-                method: 'POST',
-                headers: {
-                    'Content-type': 'application/json'
-                },
-                body: JSON.stringify(object)
-            }).then(data => data.text())
+            const obj = {a: 23, b: 50};
+            console.log(Object.entries(obj));
+
+            postData('http://localhost:3000/requests', JSON.stringify(object))
+            // .then(data => data.text())
             .then(data => {
                 console.log(data);
                 showThanksModal(message.success);
@@ -315,7 +325,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
     }
 
-
+fetch('http://localhost:3000/menu')
+    .then(data => data.json())
+    .then(res => console.log(res));
 
 
 
