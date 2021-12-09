@@ -207,7 +207,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
             element.innerHTML = `
 <!--                <div class="menu__item">-->
-                    <img src="img/tabs/${this.src}.jpg" alt="${this.alt}">
+                    <img src="${this.src}" alt="${this.alt}">
                     <h3 class="menu__item-subtitle">${this.title}</h3>
                     <div class="menu__item-descr">${this.descr}</div>
                     <div class="menu__item-divider"></div>
@@ -222,26 +222,43 @@ window.addEventListener('DOMContentLoaded', () => {
 
     }
 
+    // ::ЗАПРОС НА СЕРВЕР::
+    const getResource = async (url) => { // нет data, потому что только получаем инфу
+        const res = await fetch(url);
 
-    const dscr1 = "Меню \"Фитнес\" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. " +
-            "Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!",
-          dscr2 = "В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. " +
-              "Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!",
-          dscr3 = "Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного " +
-              "происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и " +
-              "импортных вегетарианских стейков.";
+        if (!res.ok) { // если не пришел ответ от сервера, генерируем ошибку
+            throw new Error(`Could not fetch ${url}, status: ${res.status}`);
+        }
 
-    containers.innerHTML = "";
-    new MenuCard('vegy','vegy','Меню "Фитнес',dscr1,9).makeMenuCard();
-    new MenuCard('elite','elite','Меню “Премиум”',dscr2,12, 'menu__item').makeMenuCard();
-    new MenuCard('post','post','Меню "Постное"',dscr3,11, 'menu__item').makeMenuCard();
+        return await res.json();
+    };
+
+    getResource('http://localhost:3000/menu')
+        .then(data => {
+            data.forEach(({img, altimg, title, descr, price}) => { // деструктуризация кода BD
+                new MenuCard(img, altimg, title, descr, price).makeMenuCard(); // рендер карточки
+            });
+        });
+
+    // const dscr1 = "Меню \"Фитнес\" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. " +
+    //         "Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!",
+    //       dscr2 = "В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. " +
+    //           "Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!",
+    //       dscr3 = "Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного " +
+    //           "происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и " +
+    //           "импортных вегетарианских стейков.";
+    //
+    // containers.innerHTML = "";
+    // new MenuCard('vegy','vegy','Меню "Фитнес',dscr1,9).makeMenuCard();
+    // new MenuCard('elite','elite','Меню “Премиум”',dscr2,12, 'menu__item').makeMenuCard();
+    // new MenuCard('post','post','Меню "Постное"',dscr3,11, 'menu__item').makeMenuCard();
 
 
     // ________________________________FORMS________________________________
 
 
     const forms = document.querySelectorAll('form');
-    console.log(forms);
+    // console.log(forms);
     const message = {
         loading: 'img/form/spinner.svg',
         success: 'Спасибо! Скоро мы с вами свяжемся',
@@ -282,12 +299,17 @@ window.addEventListener('DOMContentLoaded', () => {
             // formData.forEach(function (value,key){
             //     object[key] = value;
             // });
-            const json = JSON.stringify();
 
-            const obj = {a: 23, b: 50};
-            console.log(Object.entries(obj));
+            // console.log(formData); // formData собрала все данные с формы
+            // console.log(formData.entries()); // преобразуем данные в массив массивов
+            // console.log(Object.fromEntries(formData.entries())); // в классический объект
+            // console.log(JSON.stringify(Object.fromEntries(formData.entries()))); // в формат JSON
+            const json = JSON.stringify(Object.fromEntries(formData.entries()));
+            // console.log(json);
 
-            postData('http://localhost:3000/requests', JSON.stringify(object))
+
+
+            postData('http://localhost:3000/requests', json)
             // .then(data => data.text())
             .then(data => {
                 console.log(data);
@@ -328,6 +350,125 @@ window.addEventListener('DOMContentLoaded', () => {
 fetch('http://localhost:3000/menu')
     .then(data => data.json())
     .then(res => console.log(res));
+
+
+
+    // ______________S L I D E R______________
+
+    const slides = document.querySelectorAll('.offer__slide'), // каждый слайд
+          slider = document.querySelector('.offer__slider'),
+          prev = document.querySelector('.offer__slider-prev'),
+          next = document.querySelector('.offer__slider-next'),
+          total = document.querySelector('#total'),
+          current = document.querySelector('#current'),
+          slidesWrapper = document.querySelector('.offer__slider-wrapper'), // окно слайдов
+          slidesField = document.querySelector('.offer__slider-inner'), // вся полоса слайдов
+          width = window.getComputedStyle(slidesWrapper).width; // ширина окна
+
+    let slideIndex = 1;
+    let offset = 0;
+
+    slidesField.style.width = 100 * slides.length + '%'; // длина полосы слайдов = длине всех слайдов
+    slidesField.style.display = 'flex'; // горизонтальная разметка полосы слайдов
+    slidesField.style.transition = '0.5s all'; // вроде скорость прокрутки
+
+    slidesWrapper.style.overflow = 'hidden'; // скрытие всего, что не попадает в область окна
+
+    slides.forEach(slide => {
+        slide.style.width = width; // ширина каждого слайда = ширине окна
+    });
+
+    slider.style.position = 'relative';
+    const indicators = document.createElement('ol'),
+          dots = [];
+    indicators.classList.add('carousel-indicators');
+    slider.append(indicators);
+
+    for (let i = 0; i < slides.length; i++) {
+        const dot = document.createElement('li');
+        dot.setAttribute('data-slide-to', i + 1); // атрибут у каждой dot
+        dot.classList.add('dot');
+        if (i === 0) {
+            dot.style.opacity = 1;
+        }
+        indicators.append(dot);
+        dots.push(dot);
+    }
+
+    next.addEventListener('click', () => {
+        if (offset === (slides.length - 1) * parseInt(width)){
+            offset = 0;
+        } else {
+            offset = offset + parseInt(width);
+        }
+        if (slideIndex > slides.length - 1) {
+            slideIndex = 1;
+        } else {slideIndex++}
+
+        setNum();
+
+        slidesField.style.transform = `translateX(-${offset}px`;
+
+        activeDot();
+    });
+
+    prev.addEventListener('click', () => {
+        if (offset === 0) {
+            offset = (slides.length - 1) * parseInt(width);
+        } else {
+            offset = offset - parseInt(width);
+        }
+        if (slideIndex == 1) {
+            slideIndex = (slides.length);
+        } else {slideIndex--}
+
+        setNum();
+
+        slidesField.style.transform = `translateX(-${offset}px`;
+
+        activeDot();
+    });
+
+    dots.forEach(dot => {
+        dot.addEventListener('click', (e) => {
+            const slideTo = e.target.getAttribute('data-slide-to');
+
+            slideIndex = slideTo;
+            offset = (slideTo - 1) * parseInt(width);
+
+            slidesField.style.transform = `translateX(-${offset}px`;
+            setNum();
+
+            activeDot();
+        })
+    })
+
+
+
+    function setNum() {
+        if (slideIndex >= 10) {
+            current.textContent = `${slideIndex}`;
+        } else {
+            current.textContent = `0${slideIndex}`;
+        }
+    }
+
+    function activeDot() {
+        dots.forEach(dot => dot.style.opacity = '.5');
+        console.log(slideIndex);
+        dots[slideIndex - 1].style.opacity = 1;
+    }
+
+
+
+
+
+
+
+
+
+
+
 
 
 
