@@ -24,19 +24,14 @@
   ],
   "requests": [
     {
-      "name": "asdfasdf",
-      "phone": "asdf",
+      "name": "12e",
+      "phone": "12e12",
       "id": 1
     },
     {
-      "name": "123",
-      "phone": "123",
+      "name": "awefawef",
+      "phone": "aweftg3",
       "id": 2
-    },
-    {
-      "name": "Александр",
-      "phone": "123",
-      "id": 3
     }
   ]
 }
