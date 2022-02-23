@@ -396,10 +396,10 @@ fetch('http://localhost:3000/menu')
     }
 
     next.addEventListener('click', () => {
-        if (offset === (slides.length - 1) * parseInt(width)){
+        if (offset === (slides.length - 1) * +delNotNum (width)){
             offset = 0;
         } else {
-            offset = offset + parseInt(width);
+            offset += +delNotNum (width);
         }
         if (slideIndex > slides.length - 1) {
             slideIndex = 1;
@@ -414,9 +414,9 @@ fetch('http://localhost:3000/menu')
 
     prev.addEventListener('click', () => {
         if (offset === 0) {
-            offset = (slides.length - 1) * parseInt(width);
+            offset = (slides.length - 1) * +delNotNum (width);
         } else {
-            offset = offset - parseInt(width);
+            offset -= +delNotNum (width);
         }
         if (slideIndex == 1) {
             slideIndex = (slides.length);
@@ -434,7 +434,7 @@ fetch('http://localhost:3000/menu')
             const slideTo = e.target.getAttribute('data-slide-to');
 
             slideIndex = slideTo;
-            offset = (slideTo - 1) * parseInt(width);
+            offset = (slideTo - 1) * +delNotNum (width);
 
             slidesField.style.transform = `translateX(-${offset}px`;
             setNum();
@@ -460,20 +460,81 @@ fetch('http://localhost:3000/menu')
     }
 
 
+    // width.replace(/\D/g, '')
+    function delNotNum (num) {
+        return num.replace(/\D/g, '');
+    }
 
 
+// ___________К А Л Ь К У Л Я Т О Р___________
 
+    const result = document.querySelector('.calculating__result span');
+    let sex = 'female',
+        height, weight, age,
+        ratio = 1.375;
 
+    function calcTotal() {
+        if (!sex || !height || !weight || !age || !ratio) {
+            result.textContent = '____';
+            return; // чтобы код ниже не выполнялся
+        }
 
+        if (sex === 'female') {
+            result.textContent = Math.round((447.6 + (9.2 * weight) + (3.1 * height) - (4.3 * age)) * ratio);
+        } else {
+            result.textContent = Math.round((88.36 + (13.4 * weight) + (4.8 * height) - (5.7 * age)) * ratio);
+        }
+    }
 
+    calcTotal();
 
+    function getStaticInformation (parentSelector, activeClass) {
+        const elements = document.querySelectorAll(`${parentSelector} div`);
 
+        elements.forEach(elem => {
+            elem.addEventListener('click', (e) => {
+                if(e.target.getAttribute('data-ratio')) {
+                    ratio = +e.target.getAttribute('data-ratio');
+                } else {
+                    sex = e.target.getAttribute('id');
+                }
 
+                elements.forEach(elem => {
+                    elem.classList.remove(activeClass);
+                });
 
+                e.target.classList.add(activeClass);
 
+                calcTotal();
+            });
+        })
+    }
 
+    getStaticInformation('#gender', 'calculating__choose-item_active');
+    getStaticInformation('.calculating__choose_big', 'calculating__choose-item_active');
 
+    function getDynamicInformation(selector) {
+        const input = document.querySelector(selector);
 
+        input.addEventListener('input', () => {
+            switch (input.getAttribute('id')) {
+                case 'height':
+                    height = +input.value;
+                    break;
+                case 'weight':
+                    weight = +input.value;
+                    break;
+                case 'age':
+                    age = +input.value;
+                    break;
+            }
+            calcTotal();
+        });
+    }
+
+    getDynamicInformation('#height');
+    getDynamicInformation('#weight');
+    getDynamicInformation('#age');
 
 
 
