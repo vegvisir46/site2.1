@@ -1,3 +1,5 @@
+import {getResource} from "../services/servises";
+
 function cards() {
     // ________________________________CLASSES________________________________
 
@@ -49,15 +51,7 @@ function cards() {
     }
 
     // ::ЗАПРОС НА СЕРВЕР::
-    const getResource = async (url) => { // нет data, потому что только получаем инфу
-        const res = await fetch(url);
 
-        if (!res.ok) { // если не пришел ответ от сервера, генерируем ошибку
-            throw new Error(`Could not fetch ${url}, status: ${res.status}`);
-        }
-
-        return await res.json();
-    };
 
     getResource('http://localhost:3000/menu')
         .then(data => {
@@ -82,4 +76,4 @@ function cards() {
 
 }
 
-module.exports = cards;
+export default cards;
